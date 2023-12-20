@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Simple Shop</title>
+        <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      background-color: #333;
+      color: #fff;
+      text-align: center;
+      padding: 1rem;
+    }
+
+    section {
+      margin: 20px;
+    }
+
+    h2 {
+      border-bottom: 1px solid #333;
+      padding-bottom: 10px;
+    }
+
+    #product-list, #cart-list {
+      display: flex;
+      flex-wrap: wrap;
+    }
+
+    .product, .cart-item {
+      border: 1px solid #ddd;
+      padding: 10px;
+      margin: 10px;
+      width: 200px;
+    }
+
+    img {
+      max-width: 100%;
+      height: auto;
+    }
+
+    button {
+      background-color: #4CAF50;
+      color: white;
+      padding: 8px 12px;
+      border: none;
+      cursor: pointer;
+    }
+        </style>
+    </head>
+    <body>
+        <header>
+            <h1>Simple Shop</h1>
+        </header>
+        <section id="products">
+            <h2>Products</h2>
+            <div id="product-list"></div>
+        </section>
+        <section id="cart">
+            <h2>Shopping Cart</h2>
+            <div id="cart-list"></div>
+        </section>
+        <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const productContainer = document.getElementById('product-list');
+      const cartContainer = document.getElementById('cart-list');
+
+      // Fetch products from the API
+      fetch('/api/products')
+        .then(response => response.json())
+        .then(products => {
+          products.forEach(product => {
+            const productElement = createProductElement(product);
+            productContainer.appendChild(productElement);
+          });
+        });
+
+      // Fetch cart items from the API
+      fetch('/api/cart')
+        .then(response => response.json())
+        .then(cartItems => {
+          cartItems.forEach(cartItem => {
+            const cartItemElement = createCartItemElement(cartItem);
+            cartContainer.appendChild(cartItemElement);
+          });
+        });
+
+      // Helper function to create product HTML elements
+      function createProductElement(product) {
+        const productElement = document.createElement('div');
+        productElement.className = 'product';
+
+        const imgElement = document.createElement('img');
+        imgElement.src = product.imgURL;
+        imgElement.alt = product.productName;
+        productElement.appendChild(imgElement);
+
+        const titleElement = document.createElement('h3');
+        titleElement.textContent = product.productName;
+        productElement.appendChild(titleElement);
+
+        const priceElement = document.createElement('p');
+        priceElement.textContent = `$${product.price.toFixed(2)}`;
+        productElement.appendChild(priceElement);
+
+        const addButton = document.createElement('button');
+        addButton.textContent = 'Add to Cart';
+        addButton.addEventListener('click', () => addToCart(product));
+        productElement.appendChild(addButton);
+
+        return productElement;
+      }
+
+      // Helper function to create cart item HTML elements
+      function createCartItemElement(cartItem) {
+        const cartItemElement = document.createElement('div');
+        cartItemElement.className = 'cart-item';
+
+        const titleElement = document.createElement('h3');
+        titleElement.textContent = cartItem.productName;
+        cartItemElement.appendChild(titleElement);
+
+        const priceElement = document.createElement('p');
+        priceElement.textContent = `$${cartItem.price.toFixed(2)}`;
+        cartItemElement.appendChild(priceElement);
+
+        const amountElement = document.createElement('p');
+        amountElement.textContent = `Amount: ${cartItem.amount}`;
+        cartItemElement.appendChild(amountElement);
+
+        return cartItemElement;
+      }
+
+      // Function to add a product to the cart
+      function addToCart(product) {
+        const cartItem = {
+          productName: product.productName,
+          price: product.price,
+          amount: 1, // Default amount
+        };
+
+        // Send a POST request to add the item to the cart
+        fetch('/api/cart', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(cartItem),
+        })
+        .then(response => response.json())
+        .then(newCartItem => {
+          const cartItemElement = createCartItemElement(newCartItem);
+          cartContainer.appendChild(cartItemElement);
+        });
+      }
+    });
+        </script>
+    </body>
+</html>
